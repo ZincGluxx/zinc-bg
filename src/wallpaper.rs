@@ -200,6 +200,16 @@ impl Wallpaper {
                 }
             }
         }
+
+        // The full-resolution decoded source is only needed while producing
+        // output-sized buffers. Re-decode on the next actual redraw instead of
+        // keeping a potentially large image resident for the lifetime of the
+        // background service.
+        if matches!(self.current_source, Some(Source::Path(_))) {
+            self.current_image = None;
+            #[cfg(target_env = "gnu")]
+            crate::malloc::trim();
+        }
     }
 
     pub fn load_images(&mut self) {
